@@ -147,8 +147,7 @@ Status view_metadata(MP3 *mp3)
         }
         else 
         {
-            printf("Error -> Unable to fetch the meta data!!!\n");
-            return e_failure;
+            printf("%-15s : %.4s\n","Unknown frame",data);
         }
         free(data);
     }
