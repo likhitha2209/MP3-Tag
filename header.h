@@ -20,6 +20,9 @@ Status read_and_validate_view_args(int argc, char *argv[], MP3 *mp3);
 
 Status read_and_validate_edit_args(int argc, char *argv[], MP3 *mp3);
 
+/* check mp3 header*/
+Status check_mp3_header(FILE *fptr);
+
 /* Perform the view operation */
 Status view_metadata(MP3 *mp3);
 

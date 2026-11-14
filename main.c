@@ -9,7 +9,7 @@ int main(int argc,char *argv[])
 
     if(check_operation_type(argv[1][1]) == e_view)
     {
-        if(argc < 3)
+        if(argc < 2)
         {
             printf("Invalid input!!!\n");
             printf("Use: \n./a.out -v mp3filename( 'filename.mp3' )\n");
@@ -31,7 +31,7 @@ int main(int argc,char *argv[])
             printf("Invalid viewing arguments!!!\n");
         }
     }
-    if(check_operation_type(argv[1][1]) == e_edit)
+    else if(check_operation_type(argv[1][1]) == e_edit)
     {
         if(argc < 4)
         {
