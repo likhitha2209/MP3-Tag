@@ -9,7 +9,7 @@ int main(int argc,char *argv[])
 
     if(check_operation_type(argv[1][1]) == e_view)
     {
-        if(argc < 2)
+        if(argc < 2 && argc > 3)
         {
             printf("Invalid input!!!\n");
             printf("Use: \n./a.out -v mp3filename( 'filename.mp3' )\n");
@@ -33,11 +33,11 @@ int main(int argc,char *argv[])
     }
     else if(check_operation_type(argv[1][1]) == e_edit)
     {
-        if(argc < 3)
+        if(argc < 4 && argc >5)
         {
-            printf("Invalid input!!!\n");
-            printf("Use: \n./a.out -e -t/-a/-A/-m/-y/-c mp3filename( 'filename.mp3' )\n");
-            return 0;
+            printf("Invalid editing arguments!!!\n");
+            printf("Use: \n./a.out -v -t/-a/-A/-m/-y/-c 'New_data' mp3filename( 'filename.mp3' )\n");
+            return e_failure;
         }
         if(read_and_validate_edit_args(argc, argv, &mp3) == e_success)
         {
