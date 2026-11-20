@@ -33,10 +33,10 @@ int main(int argc,char *argv[])
     }
     else if(check_operation_type(argv[1][1]) == e_edit)
     {
-        if(argc < 4)
+        if(argc < 3)
         {
             printf("Invalid input!!!\n");
-            printf("Use: \n./a.out -v -t/-a/-A/-m/-y/-c mp3filename( 'filename.mp3' )\n");
+            printf("Use: \n./a.out -e -t/-a/-A/-m/-y/-c mp3filename( 'filename.mp3' )\n");
             return 0;
         }
         if(read_and_validate_edit_args(argc, argv, &mp3) == e_success)

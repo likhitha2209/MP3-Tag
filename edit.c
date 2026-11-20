@@ -10,7 +10,7 @@ Status read_and_validate_edit_args(int argc, char *argv[], MP3 *mp3)
 
     if(argv[2][1] == 't')
     {
-
+        
     }
     else if(argv[2][1] == 'a')
     {
