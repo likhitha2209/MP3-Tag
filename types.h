@@ -13,7 +13,8 @@ typedef enum
 typedef enum
 {
     e_view,       
-    e_edit,       
+    e_edit,
+    e_help,        
     e_unsupported   
 } OperationType;
 

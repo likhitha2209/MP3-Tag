@@ -27,11 +27,11 @@ Status read_and_validate_view_args(int argc, char *argv[], MP3 *mp3)
     }
     else
     {
-        mp3->mp3_fname = argv[2];
+        mp3->fptr_view = argv[2];
     }
 
-    mp3->fptr_mp3 = fopen(argv[2],"rb");
-    if(mp3->fptr_mp3 == NULL)
+    mp3->fptr_view = fopen(argv[2],"rb");
+    if(mp3->fptr_view == NULL)
     {
         printf("Error -> Unable to open Source file.\n");
         return e_failure;
@@ -67,7 +67,7 @@ Status check_mp3_header(FILE *fptr)
 Status view_metadata(MP3 *mp3)
 {
     //skip 10 bytes of mp3 header
-    if(check_mp3_header(mp3->fptr_mp3) == e_failure)
+    if(check_mp3_header(mp3->fptr_view) == e_failure)
     {
         printf("Error -> Failed to skip 10 bytes of mp3 header\n");
         return e_failure;
@@ -85,7 +85,7 @@ Status view_metadata(MP3 *mp3)
     for(i=0;i<6;i++)
     {
         // read 4 bytes from file
-        fread(buff, 1, 4, mp3->fptr_mp3);
+        fread(buff, 1, 4, mp3->fptr_view);
         buff[4] ='\0';
 
         // convert size into little endianess
@@ -102,7 +102,7 @@ Status view_metadata(MP3 *mp3)
         }
 
         //skip 2 bytes of flag and 1 byte of null char in data
-        fseek(mp3->fptr_mp3, 3, SEEK_CUR);
+        fseek(mp3->fptr_view, 3, SEEK_CUR);
 
         data= malloc(size);
         if(data == NULL)
@@ -113,7 +113,7 @@ Status view_metadata(MP3 *mp3)
 
 
         // read size-1 bytes of metedata
-        fread(data,1,size-1,mp3->fptr_mp3);
+        fread(data,1,size-1,mp3->fptr_view);
         data[size-1]='\0';
 
         // display meta data
@@ -165,7 +165,7 @@ Status endianess(MP3 *mp3, int *size)
     unsigned char temp;
 
     // read 4 bytes of size
-    fread(buff,1,4,mp3->fptr_mp3);
+    fread(buff,1,4,mp3->fptr_view);
     
     //converting from big endian to little endian by swapping  
     temp = buff[0];

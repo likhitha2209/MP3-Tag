@@ -6,7 +6,11 @@
 typedef struct _MP3
 {
     char *mp3_fname; 
-    FILE *fptr_mp3;  
+    FILE *fptr_view;  
+
+    //char *edit_opt;
+    FILE *fptr_edit;
+    FILE *fptr_temp;
 
 }MP3;
 
@@ -15,6 +19,8 @@ typedef struct _MP3
 /* Check operation type */
 OperationType check_operation_type(char opt);
 
+//OperationType check_edit_operation_type(char opt);
+
 /* Read and validate args from argv */
 Status read_and_validate_view_args(int argc, char *argv[], MP3 *mp3);
 
@@ -22,6 +28,8 @@ Status read_and_validate_edit_args(int argc, char *argv[], MP3 *mp3);
 
 /* check mp3 header*/
 Status check_mp3_header(FILE *fptr);
+
+Status copy_mp3_header(FILE *fptr);
 
 /* Perform the view operation */
 Status view_metadata(MP3 *mp3);

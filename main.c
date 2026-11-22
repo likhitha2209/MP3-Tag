@@ -9,7 +9,7 @@ int main(int argc,char *argv[])
 
     if(check_operation_type(argv[1][1]) == e_view)
     {
-        if(argc < 2 && argc > 3)
+        if(argc < 2 || argc > 3)
         {
             printf("Invalid input!!!\n");
             printf("Use: \n./a.out -v mp3filename( 'filename.mp3' )\n");
@@ -19,7 +19,7 @@ int main(int argc,char *argv[])
         {
             if(view_metadata(&mp3) == e_success)
             {
-                printf("---------------------- END VIEW ----------------------\n");
+                printf("-------------------- VIEW SUCCESSFULL ----------------------\n");
             }
             else
             {
@@ -33,7 +33,7 @@ int main(int argc,char *argv[])
     }
     else if(check_operation_type(argv[1][1]) == e_edit)
     {
-        if(argc < 4 && argc >5)
+        if(argc < 4 || argc > 5)
         {
             printf("Invalid editing arguments!!!\n");
             printf("Use: \n./a.out -v -t/-a/-A/-m/-y/-c 'New_data' mp3filename( 'filename.mp3' )\n");
@@ -43,7 +43,7 @@ int main(int argc,char *argv[])
         {
             if(edit_metadata(&mp3) == e_success)
             {
-                printf("---------------------- DONE EDITING ----------------------\n");
+                printf("---------------------- EDIT SUCCESSFUL ----------------------\n");
             }
             else
             {
@@ -73,6 +73,11 @@ OperationType check_operation_type(char opt)
     else if(opt == 'e')
     {
         printf("---------------------- EDITING STARTED ----------------------\n");
+        return e_edit;
+    }
+    else if(opt == 'h')
+    {
+        printf("---------------------- HELP OPERATION ----------------------\n");
         return e_edit;
     }
     else
