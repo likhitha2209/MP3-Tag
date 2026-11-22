@@ -27,7 +27,7 @@ Status read_and_validate_view_args(int argc, char *argv[], MP3 *mp3)
     }
     else
     {
-        mp3->fptr_view = argv[2];
+        mp3->mp3_fname = argv[2];
     }
 
     mp3->fptr_view = fopen(argv[2],"rb");
