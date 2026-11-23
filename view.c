@@ -10,6 +10,12 @@ Status read_and_validate_view_args(int argc, char *argv[], MP3 *mp3)
 
     printf("Validating viewing arguments!!!\n");
 
+    if (argc != 3)
+    {
+        printf("Error -> Invalid argument count\n");
+        return e_failure;
+    }
+
     if(argv[2] == NULL)
     {
         printf("Error -> Soure file name not found.\n");
@@ -145,10 +151,10 @@ Status view_metadata(MP3 *mp3)
         {
             printf("%-15s : %s\n","Composer Name",data);
         }
-        else 
-        {
-            printf("%-15s : %.4s\n","Unknown frame",data);
-        }
+        // else 
+        // {
+        //     printf("%-15s : %.4s\n","Unknown frame",data);
+        // }
         free(data);
     }
 

@@ -2,6 +2,7 @@
 #include "types.h"
 #include "header.h"
 #include <string.h>
+#include <stdlib.h>
 
 Status read_and_validate_edit_args(int argc, char *argv[], MP3 *mp3)
 {
@@ -73,6 +74,40 @@ Status read_and_validate_edit_args(int argc, char *argv[], MP3 *mp3)
     return e_success;
 }
 
+char *get_frame_id(char option)
+{
+    switch (option)
+    {
+    case 't':
+        return "TIT2";
+        break;
+
+    case 'a':
+        return "TPE1";
+        break;
+
+    case 'A':
+        return "TALB";
+        break;
+
+    case 'c':
+        return "COMM";
+        break;
+    
+    case 'm':
+        return "TCOM";
+        break;
+
+    case 'y':
+        return "TYER";
+        break;
+
+    default:
+        return NULL;
+        break;
+    }
+}
+
 Status copy_mp3_header(FILE *src, FILE *dest)
 {
     char buff[10];
@@ -96,8 +131,10 @@ Status edit_metadata(MP3 *mp3)
     char buff[5];
     int i, size,new_size;
 
+    printf("Before getting frame ID\n");
     // get frame ID
     char *tag = get_frame_id(mp3->edit_opt[1]);
+    printf("Frame ID: %s\n", tag);
 
     if (tag == NULL)
     {
@@ -105,79 +142,79 @@ Status edit_metadata(MP3 *mp3)
         return e_failure;
     }
 
-    for (i = 0; i < 6; i++)
+    // read 4 bytes of tag from mp3 file
+    fread(buff, 4, 1, mp3->fptr_edit);
+    buff[4] = '\0';
+
+    // copy 4 bytes of tag to temp
+    fwrite(buff, 4, 1, mp3->fptr_temp);
+
+    // read size & endianness conversion from big to little
+    edit_endianess(mp3, &size);
+
+    if (size <= 0)
     {
-        // read 4 bytes of tag from mp3 file
-        fread(buff, 4, 1, mp3->fptr_edit);
-        buff[4] = '\0';
+        printf("Invalid frame size\n");
+        return e_failure;
+    }
+    char flag[3];
+    char *data;
 
-        // copy 4 bytes of tag to temp
-        fwrite(buff, 4, 1, mp3->fptr_temp);
+    // skip 2 flag bytes and 1 encoding byte
+    fread(flag, 1, 3, mp3->fptr_edit);
 
-        // read size & endianness conversion from big to little
-        endianess(mp3, &size);
-        if (size <= 0)
+    if(strcmp(buff, tag) == 0)
+    {
+        // calculate new data size
+        new_size = strlen(mp3->new_data) + 1;
+        printf("The new_frame size is %d\n",new_size);
+
+        // convert new size into big endian
+        unsigned char size_buff[4];
+
+        convert_to_big_endian(new_size, size_buff);
+
+        // write new size into temp file
+        fwrite(size_buff, 1, 4, mp3->fptr_temp);
+
+        // copy 3 bytes of flag and encoding
+        fwrite(flag, 1, 3, mp3->fptr_temp); 
+
+        // write new data
+        fwrite(mp3->new_data, 1, strlen(mp3->new_data), mp3->fptr_temp);
+
+        // Skip old frame data in source file
+        fseek(mp3->fptr_edit, size-1, SEEK_CUR);
+        printf("Metadata updated successfully!\n");
+    }
+    else
+    {
+        // convert old size into big endian
+        unsigned char size_buff[4];
+
+        convert_to_big_endian(size, size_buff);
+        // write old size
+        fwrite(size_buff, 1, 4, mp3->fptr_temp);
+
+        // copy flags and encoding
+        fwrite(flag, 1, 3, mp3->fptr_temp);
+
+        // allocate memory for old data
+        data = malloc(size);
+
+        if(data == NULL)
         {
-            printf("Invalid frame size\n");
+            printf("Memory allocation failed\n");
             return e_failure;
-        }
+        }       
 
-        char flag[3];
-        char *data;
+        // read old data
+        fread(data, 1, size-1, mp3->fptr_edit);
 
-        // skip 2 flag bytes and 1 encoding byte
-        fread(flag, 1, 3, mp3->fptr_edit);
+        // copy old data into temp
+        fwrite(data, 1, size-1, mp3->fptr_temp);
 
-        if(strcmp(buff, tag) == 0)
-        {
-            // calculate new data size
-            new_size = strlen(mp3->new_data) + 1;
-
-            // convert new size into big endian
-            unsigned char size_buff[4];
-
-            endianess(new_size, size_buff);
-
-            // write new size into temp file
-            fwrite(size_buff, 1, 4, mp3->fptr_temp);
-
-            // copy 3 bytes of flag and encoding
-            fwrite(flag, 1, 3, mp3->fptr_temp);
-
-            // write new data
-            fwrite(mp3->new_data, 1, strlen(mp3->new_data), mp3->fptr_temp);
-
-            printf("Metadata updated successfully!\n");
-        }
-        else
-        {
-            // convert old size into big endian
-            unsigned char size_buff[4];
-
-            endianess(size, size_buff);
-            // write old size
-            fwrite(size_buff, 1, 4, mp3->fptr_temp);
-
-            // copy flags and encoding
-            fwrite(flag, 1, 3, mp3->fptr_temp);
-
-            // allocate memory for old data
-            data = malloc(size);
-
-            if(data == NULL)
-            {
-                printf("Memory allocation failed\n");
-                return e_failure;
-            }       
-
-            // read old data
-            fread(data, 1, size, mp3->fptr_edit);
-
-            // copy old data into temp
-            fwrite(data, 1, size, mp3->fptr_temp);
-
-            free(data);
-        }
+        free(data);
     }
 
     // copy remaining audio data
@@ -198,32 +235,37 @@ Status edit_metadata(MP3 *mp3)
     return e_success;
 }
 
-char *get_frame_id(char option)
+Status edit_endianess(MP3 *mp3, int *size)
 {
-    switch (option)
-    {
-    case 't':
-        return "TIT2";
-        break;
+    unsigned char buff[4];
+    unsigned char temp;
 
-    case 'a':
-        return "TPE1";
-        break;
+    // read 4 bytes of size
+    fread(buff,1,4,mp3->fptr_edit);
+    
+    //converting from big endian to little endian by swapping  
+    temp = buff[0];
+    buff[0] = buff[3];
+    buff[3] = temp;
 
-    case 'A':
-        return "TALB";
-        break;
+    temp=buff[1];
+    buff[1] = buff[2];
+    buff[2] = temp;
 
-    case 'm':
-        return "COMM";
-        break;
+    //convert reversed byte into integer
+    *size= *(int  *)buff;
 
-    case 'y':
-        return "TYER";
-        break;
+    return e_success;
+}
 
-    default:
-        return NULL;
-        break;
-    }
+Status convert_to_big_endian(int size, unsigned char *buff)
+{
+    unsigned char *ptr = (unsigned char *)&size;
+
+    buff[0] = ptr[3];
+    buff[1] = ptr[2];
+    buff[2] = ptr[1];
+    buff[3] = ptr[0];
+
+    return e_success;
 }

@@ -44,5 +44,7 @@ char *get_frame_id(char option);
 
 /* check Endianess*/
 Status endianess(MP3 *mp3, int *size);
+Status edit_endianess(MP3 *mp3, int *size);
+Status convert_to_big_endian(int size, unsigned char *buff);
 
 #endif
